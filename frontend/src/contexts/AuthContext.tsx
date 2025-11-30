@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { api } from '@/lib/axios'
 
@@ -20,62 +21,71 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    // Check if user is logged in by calling /me endpoint
-    const checkAuth = async () => {
+  const { data: user, isLoading: loading } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
       try {
         const response = await api.get('/auth/me')
-        setUser({
+        return {
           id: response.data.user.id,
           username: response.data.user.username,
-          hasTeam: false, // TODO: This will come from database later
-        })
+          hasTeam: response.data.user.hasTeam || false,
+        } as User
       } catch (error) {
-        // Not logged in or token expired
-        setUser(null)
-      } finally {
-        setLoading(false)
+        return null
       }
-    }
-
-    checkAuth()
-  }, [])
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: false, // Don't retry if user is not authenticated
+  })
 
   const login = async (username: string, password: string): Promise<void> => {
     const response = await api.post('/auth/login', { username, password })
-    setUser({
+    const userData = {
       id: response.data.user.id,
       username: response.data.user.username,
-      hasTeam: false, // TODO: This will come from database later
-    })
+      hasTeam: response.data.user.hasTeam || false,
+    }
+    // Update the query cache with the new user data
+    queryClient.setQueryData(['auth', 'me'], userData)
   }
 
   const signup = async (username: string, password: string): Promise<void> => {
     const response = await api.post('/auth/signup', { username, password })
-    setUser({
+    const userData = {
       id: response.data.user.id,
       username: response.data.user.username,
-      hasTeam: false, // TODO: This will come from database later
-    })
+      hasTeam: response.data.user.hasTeam || false,
+    }
+    // Update the query cache with the new user data
+    queryClient.setQueryData(['auth', 'me'], userData)
   }
 
   const logout = async (): Promise<void> => {
     await api.post('/auth/logout')
-    setUser(null)
+    // Clear the auth cache
+    queryClient.setQueryData(['auth', 'me'], null)
   }
 
   const setUserTeam = (hasTeam: boolean) => {
     if (user) {
-      setUser({ ...user, hasTeam })
+      // Update the query cache with the new hasTeam value
+      queryClient.setQueryData(['auth', 'me'], { ...user, hasTeam })
     }
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, setUserTeam }}
+      value={{
+        user: user ?? null,
+        loading,
+        login,
+        signup,
+        logout,
+        setUserTeam,
+      }}
     >
       {children}
     </AuthContext.Provider>

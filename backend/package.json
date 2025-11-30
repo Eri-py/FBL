@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon --exec \"node --import tsx src/server.ts\"",
     "generate": "prisma generate",
-    "migrate": "prisma db push"
+    "migrate": "prisma migrate dev"
   },
   "keywords": [],
   "author": "",

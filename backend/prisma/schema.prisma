@@ -14,6 +14,7 @@ model User {
   updatedAt     DateTime @updatedAt @map("updated_at")
   
   refreshTokens RefreshToken[]
+  team          Team?
 
   @@map("users")
 }
@@ -28,4 +29,41 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String   @unique @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  players TeamPlayer[]
+
+  @@map("teams")
+}
+
+model Player {
+  id       String @id @default(uuid())
+  name     String
+  price    Int    // Price in millions (e.g., 12 = £12m)
+  category String // 'MS', 'WS', 'MD', 'WD', 'XD'
+  
+  teams TeamPlayer[]
+
+  @@map("players")
+}
+
+model TeamPlayer {
+  id        String   @id @default(uuid())
+  teamId    String   @map("team_id")
+  playerId  String   @map("player_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, playerId])
+  @@map("team_players")
 }

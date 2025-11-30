@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -34,6 +35,12 @@ const generateTokens = async (userId: string) => {
   });
 
   return { accessToken, refreshToken };
+};
+
+// Helper to check if user has a team
+const checkUserHasTeam = async (userId: string): Promise<boolean> => {
+  const team = await prisma.team.findUnique({ where: { userId } });
+  return !!team;
 };
 
 export const signup = async (req: Request, res: Response) => {
@@ -87,10 +94,14 @@ export const signup = async (req: Request, res: Response) => {
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
+    // Check if user has a team
+    const hasTeam = await checkUserHasTeam(user.id);
+
     res.status(201).json({
       user: {
         id: user.id,
         username: user.username,
+        hasTeam,
       },
     });
   } catch (error) {
@@ -142,10 +153,14 @@ export const login = async (req: Request, res: Response) => {
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
+    // Check if user has a team
+    const hasTeam = await checkUserHasTeam(user.id);
+
     res.json({
       user: {
         id: user.id,
         username: user.username,
+        hasTeam,
       },
     });
   } catch (error) {
@@ -200,10 +215,14 @@ export const refreshToken = async (req: Request, res: Response) => {
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
+    // Check if user has a team
+    const hasTeam = await checkUserHasTeam(tokenRecord.userId);
+
     res.json({
       user: {
         id: tokenRecord.user.id,
         username: tokenRecord.user.username,
+        hasTeam,
       },
     });
   } catch (error) {
@@ -229,7 +248,15 @@ export const getMe = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ user });
+    // Check if user has a team
+    const hasTeam = await checkUserHasTeam(userId);
+
+    res.json({
+      user: {
+        ...user,
+        hasTeam,
+      },
+    });
   } catch (error) {
     console.error("Get user error:", error);
     res.status(500).json({ error: "Internal server error" });

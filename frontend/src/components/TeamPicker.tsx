@@ -1,5 +1,4 @@
-import { Box, Container, Typography } from '@mui/material'
-import { samplePlayers } from '../data/samplePlayers'
+import { Box, CircularProgress, Container, Typography } from '@mui/material'
 import TeamSummary from './TeamSummary'
 import PlayerFeed from './PlayerFeed'
 import { useTeam } from '@/hooks/useTeam'
@@ -7,12 +6,34 @@ import { useTeam } from '@/hooks/useTeam'
 export default function TeamPicker() {
   const {
     team,
+    players,
+    isLoading,
+    error,
     canAddPlayer,
     addPlayer,
     removePlayer,
     isTeamValid,
     MAX_BUDGET,
   } = useTeam()
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3, textAlign: 'center' }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading players...</Typography>
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 3, textAlign: 'center' }}>
+        <Typography color="error">
+          Failed to load players. Please try again.
+        </Typography>
+      </Container>
+    )
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
@@ -35,12 +56,14 @@ export default function TeamPicker() {
       />
 
       {/* Player Feed */}
-      <PlayerFeed
-        players={samplePlayers}
-        canAddPlayer={canAddPlayer}
-        onAddPlayer={addPlayer}
-        teamPlayers={team.players}
-      />
+      {players && (
+        <PlayerFeed
+          players={players}
+          canAddPlayer={canAddPlayer}
+          onAddPlayer={addPlayer}
+          teamPlayers={team.players}
+        />
+      )}
     </Container>
   )
 }

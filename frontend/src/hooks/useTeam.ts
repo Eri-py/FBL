@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import type { Player, TeamState } from '../types'
+import { useQuery } from '@tanstack/react-query'
+import type { Player, TeamState } from '@/types'
+import { api } from '@/lib/axios'
 
 const MAX_BUDGET = 50
 
@@ -10,6 +12,19 @@ export const useTeam = () => {
     msCount: 0,
     wsCount: 0,
     anyCount: 0,
+  })
+
+  const {
+    data: players,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['players'],
+    queryFn: async () => {
+      const response = await api.get('/teams/players')
+      return response.data.players as Array<Player>
+    },
+    staleTime: 10 * 60 * 1000,
   })
 
   const canAddPlayer = (player: Player): boolean => {
@@ -57,6 +72,9 @@ export const useTeam = () => {
 
   return {
     team,
+    players,
+    isLoading,
+    error,
     canAddPlayer,
     addPlayer,
     removePlayer,
