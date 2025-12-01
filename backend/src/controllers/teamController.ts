@@ -67,8 +67,8 @@ export const saveTeam = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Team name and player IDs required" });
     }
 
-    if (playerIds.length !== 5) {
-      return res.status(400).json({ error: "Team must have exactly 5 players" });
+    if (playerIds.length !== 4) {
+      return res.status(400).json({ error: "Team must have exactly 4 players" });
     }
 
     // Fetch the players to validate categories and budget
@@ -76,24 +76,23 @@ export const saveTeam = async (req: Request, res: Response) => {
       where: { id: { in: playerIds } },
     });
 
-    if (players.length !== 5) {
+    if (players.length !== 4) {
       return res.status(400).json({ error: "Invalid player IDs" });
     }
 
-    // Validate budget (max 50)
+    // Validate budget (max 40)
     const totalCost = players.reduce((sum, p) => sum + p.price, 0);
-    if (totalCost > 50) {
-      return res.status(400).json({ error: "Team exceeds budget of £50m" });
+    if (totalCost > 40) {
+      return res.status(400).json({ error: "Team exceeds budget of £40m" });
     }
 
-    // Validate team composition: 2 MS, 2 WS, 1 Other
+    // Validate team composition: 2 MS, 2 WS
     const msCount = players.filter((p) => p.category === "MS").length;
     const wsCount = players.filter((p) => p.category === "WS").length;
-    const otherCount = players.filter((p) => !["MS", "WS"].includes(p.category)).length;
 
-    if (msCount !== 2 || wsCount !== 2 || otherCount !== 1) {
+    if (msCount !== 2 || wsCount !== 2) {
       return res.status(400).json({
-        error: "Team must have 2 Men's Singles, 2 Women's Singles, and 1 Other player",
+        error: "Team must have 2 Men's Singles and 2 Women's Singles players",
       });
     }
 

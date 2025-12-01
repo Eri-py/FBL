@@ -35,10 +35,10 @@ export default function TeamSummary({
       >
         <Box>
           <Typography variant="h6" fontWeight="bold">
-            Your Team ({team.players.length}/5)
+            Your Team ({team.players.length}/4)
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {team.msCount} MS • {team.wsCount} WS • {team.anyCount} Other
+            {team.msCount} MS • {team.wsCount} WS
           </Typography>
         </Box>
 
@@ -67,9 +67,8 @@ export default function TeamSummary({
       {/* Validation Alert */}
       {!isTeamValid && (
         <Alert severity="info" sx={{ mt: 2, color: 'text.primary' }}>
-          {
-            "Select 5 players (2 Men's Singles, 2 Women's Singles, 1 Other) within budget"
-          }
+          Select 4 players (2 Men's Singles, 2 Women's Singles) within £
+          {MAX_BUDGET}m budget
         </Alert>
       )}
     </Paper>
