@@ -50,6 +50,7 @@ model Player {
   name     String
   price    Int    // Price in millions (e.g., 12 = £12m)
   category String // 'MS', 'WS'
+  country  String 
   
   teams  TeamPlayer[]
   scores PlayerScore[]
