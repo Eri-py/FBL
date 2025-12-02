@@ -48,9 +48,10 @@ model Player {
   id       String @id @default(uuid())
   name     String
   price    Int    // Price in millions (e.g., 12 = £12m)
-  category String // 'MS', 'WS', 'MD', 'WD', 'XD'
+  category String // 'MS', 'WS'
   
-  teams TeamPlayer[]
+  teams  TeamPlayer[]
+  scores PlayerScore[]
 
   @@map("players")
 }
@@ -66,4 +67,29 @@ model TeamPlayer {
 
   @@unique([teamId, playerId])
   @@map("team_players")
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  scores PlayerScore[]
+
+  @@map("matches")
+}
+
+model PlayerScore {
+  id        String   @id @default(uuid())
+  matchId   String   @map("match_id")
+  playerId  String   @map("player_id")
+  points    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, playerId])
+  @@map("player_scores")
 }

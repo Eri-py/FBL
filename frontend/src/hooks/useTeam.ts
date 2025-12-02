@@ -58,12 +58,12 @@ export const useTeam = () => {
       const response = await api.post('/teams', { name, playerIds })
       return response.data
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Update user's hasTeam status
       setUserTeam(true)
-      // Invalidate queries to refetch team data and auth status
-      queryClient.invalidateQueries({ queryKey: ['myTeam'] })
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      // Force refetch of queries
+      await queryClient.refetchQueries({ queryKey: ['myTeam'] })
+      await queryClient.refetchQueries({ queryKey: ['auth', 'me'] })
     },
   })
 

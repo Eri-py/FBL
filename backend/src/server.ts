@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
 import teamRoutes from "./routes/team";
+import matchRoutes from "./routes/match";
+import leaderboardRoutes from "./routes/leaderboard";
 
 dotenv.config();
 
@@ -23,6 +25,8 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/teams", teamRoutes);
+app.use("/api/matches", matchRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 // Health check
 app.get("/api/health", (_, res) => {

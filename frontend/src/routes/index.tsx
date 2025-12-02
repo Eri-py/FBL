@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Box, Container, Typography } from '@mui/material'
 import Leaderboard from '@/components/Leaderboard'
-import { dummyLeaderboard } from '@/data/dummyLeaderboard'
 
 export const Route = createFileRoute('/')({
   component: HomeComponent,
@@ -19,7 +18,7 @@ function HomeComponent() {
         </Typography>
       </Box>
 
-      <Leaderboard data={dummyLeaderboard} />
+      <Leaderboard />
     </Container>
   )
 }

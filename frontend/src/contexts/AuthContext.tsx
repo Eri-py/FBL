@@ -1,5 +1,5 @@
-import { createContext, useContext } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { api } from '@/lib/axios'
 
@@ -22,24 +22,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const { data: user, isLoading: loading } = useQuery({
-    queryKey: ['auth', 'me'],
-    queryFn: async () => {
+  // Check auth status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
       try {
         const response = await api.get('/auth/me')
-        return {
+        setUser({
           id: response.data.user.id,
           username: response.data.user.username,
           hasTeam: response.data.user.hasTeam || false,
-        } as User
+        })
       } catch (error) {
-        return null
+        setUser(null)
+      } finally {
+        setLoading(false)
       }
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: false, // Don't retry if user is not authenticated
-  })
+    }
+
+    checkAuth()
+  }, [])
 
   const login = async (username: string, password: string): Promise<void> => {
     const response = await api.post('/auth/login', { username, password })
@@ -48,8 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username: response.data.user.username,
       hasTeam: response.data.user.hasTeam || false,
     }
-    // Update the query cache with the new user data
-    queryClient.setQueryData(['auth', 'me'], userData)
+    setUser(userData)
   }
 
   const signup = async (username: string, password: string): Promise<void> => {
@@ -59,27 +62,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username: response.data.user.username,
       hasTeam: response.data.user.hasTeam || false,
     }
-    // Update the query cache with the new user data
-    queryClient.setQueryData(['auth', 'me'], userData)
+    setUser(userData)
   }
 
   const logout = async (): Promise<void> => {
     await api.post('/auth/logout')
-    // Clear the auth cache
-    queryClient.setQueryData(['auth', 'me'], null)
+    setUser(null)
+    // Clear all queries
+    queryClient.removeQueries({ queryKey: ['myTeam'] })
+    queryClient.removeQueries({ queryKey: ['leaderboard'] })
   }
 
   const setUserTeam = (hasTeam: boolean) => {
     if (user) {
-      // Update the query cache with the new hasTeam value
-      queryClient.setQueryData(['auth', 'me'], { ...user, hasTeam })
+      setUser({ ...user, hasTeam })
     }
   }
 
   return (
     <AuthContext.Provider
       value={{
-        user: user ?? null,
+        user,
         loading,
         login,
         signup,
