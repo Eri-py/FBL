@@ -1,3 +1,4 @@
+// backend/prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -77,6 +78,7 @@ model Match {
   
   scores PlayerScore[]
 
+  @@unique([name, date])
   @@map("matches")
 }
 
@@ -92,4 +94,13 @@ model PlayerScore {
 
   @@unique([matchId, playerId])
   @@map("player_scores")
+}
+
+model ScrapedDate {
+  id        String   @id @default(uuid())
+  date      String   @unique // Date string from Flashscore (e.g., "01/12/2024")
+  scrapedAt DateTime @default(now()) @map("scraped_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("scraped_dates")
 }
